@@ -200,6 +200,47 @@ def logout():
     session.clear()
     return redirect(url_for('home'))
 
+@app.route('/public_verify_id', methods=['GET', 'POST'])
+def public_verify_id():
+    result = None
+    if request.method == 'POST':
+        if 'id_image' not in request.files:
+            result = 'No file uploaded.'
+        else:
+            file = request.files['id_image']
+            if file.filename == '':
+                result = 'No file selected.'
+            else:
+                img = Image.open(file.stream)
+                decoded_objs = decode(img)
+                if not decoded_objs:
+                    result = 'ID card Not valid'
+                else:
+                    try:
+                        qr_data = decoded_objs[0].data.decode('utf-8')
+                        import json
+                        qr_json = json.loads(qr_data)
+                        required_fields = ['rollno', 'name', 'class', 'branch', 'address', 'phone', 'email']
+                        if all(field in qr_json for field in required_fields):
+                            record = id_cards_col.find_one({
+                                'rollno': qr_json['rollno'],
+                                'name': qr_json['name'],
+                                'class': qr_json['class'],
+                                'branch': qr_json['branch'],
+                                'address': qr_json['address'],
+                                'phone': qr_json['phone'],
+                                'email': qr_json['email']
+                            })
+                            if record:
+                                result = 'Valid ID card'
+                            else:
+                                result = 'ID card Not valid'
+                        else:
+                            result = 'ID card Not valid'
+                    except Exception as e:
+                        result = 'ID card Not valid'
+    return render_template('public_verify_id.html', result=result)
+
 # ... more routes will be added here ...
 
 if __name__ == '__main__':
