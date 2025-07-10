@@ -1,15 +1,12 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, session, send_file, flash
 from pymongo import MongoClient
-from dotenv import load_dotenv
 from bson.objectid import ObjectId
 import qrcode
 import base64
 from io import BytesIO
 from PIL import Image
 from pyzbar.pyzbar import decode
-
-load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # For session management
